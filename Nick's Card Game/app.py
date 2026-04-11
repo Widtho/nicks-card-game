@@ -1,9 +1,10 @@
 from flask import Flask, jsonify, request
 import random
+import os
 
 app = Flask(__name__)
 
-# Game state
+# ====================== GAME STATE ======================
 full_deck = []
 ready_players = {1: False, 2: False}
 fight_active = False
@@ -15,20 +16,18 @@ players_pools = {1: [], 2: []}
 players_equipped = {1: {}, 2: {}}
 player_names = {1: "Player 1", 2: "Player 2"}
 
-# Name pools for cool names
+# Name pools for cool card names
 name_prefixes = ["Ugar's", "Void", "Shadow", "Frost", "Crimson", "Dragon", "Eternal", "Chaos", "Blood", "Storm", "Rune", "Phantom"]
 name_suffixes = ["of Pain", "of Eternity", "of Ruin", "of Fury", "of the Void", "of Shadows", "of Frost", "of Chaos", "of Power", "of Doom", "of the Ancients"]
 uber_suffixes = ["of the Eternal", "of Absolute Power", "of Infinite Rage", "of the Forgotten God"]
 
-# Special ability pool
+# Special ability pool (you can expand this later)
 special_ability_pool = [
     "Trigger: On Hit - Opponent loses 10 energy",
     "Trigger: On Miss - Gain 15 HP",
     "Call-out: Once per game - Ignore opponent's next defense flip",
     "Trigger: When opponent heals - Steal 20 HP",
     "Trigger: On Crit - Extra 30 damage",
-    "Call-out: Once per game - Swap one of opponent's rings with yours",
-    "Trigger: Opponent uses ability - 50% chance to fizzle it",
     "Call-out: Once per game - Double your next attack damage",
     "Trigger: When you take damage - 25% chance to reflect half",
 ]
@@ -40,6 +39,7 @@ def create_card(card_id):
     slot_types = ["Head", "Chest", "Bracers", "Gloves", "Pants", "Boots", "Necklace", "Ring", "Main-hand", "Off-hand", "Familiar", "Ability"]
     slot = random.choice(slot_types)
 
+    # Base stat
     if slot in ["Main-hand", "Off-hand"]:
         base_stat = {"type": random.choice(["phys_attack", "mag_attack"]), "value": random.randint(25, 75)}
     elif slot == "Ability":
@@ -49,8 +49,8 @@ def create_card(card_id):
     else:
         base_stat = {"type": random.choice(["ac", "magdef"]), "value": random.randint(8, 35)}
 
+    # Bonus stats based on rarity
     bonus_count = {"Common": 0, "Uncommon": 1, "Rare": 2, "Epic": 3, "Legendary": 4, "Unique": 4}.get(tier, 0)
-
     stat_types = ["ac", "magdef", "phys_attack", "mag_attack", "hp", "energy"]
     tier_ranges = {"Uncommon": (5,15), "Rare": (10,20), "Epic": (15,25), "Legendary": (20,30), "Unique": (25,35)}
     min_val, max_val = tier_ranges.get(tier, (5,15))
@@ -61,17 +61,19 @@ def create_card(card_id):
         value = random.randint(min_val, max_val)
         bonus_stats.append({"type": stat_type, "value": value})
 
+    # Uber check
     is_uber = False
     if bonus_count > 0 and all(b["value"] == max_val for b in bonus_stats):
         is_uber = True
         for b in bonus_stats:
             b["value"] = max_val
 
+    # Special ability for Unique or Uber
     special_ability = None
     if tier == "Unique" or is_uber:
         special_ability = random.choice(special_ability_pool)
 
-    # Cool flavorful name
+    # Cool name
     if is_uber:
         name = f"{random.choice(name_prefixes)} {slot} {random.choice(uber_suffixes)}"
     else:
@@ -88,6 +90,7 @@ def create_card(card_id):
         "special_ability": special_ability
     }
 
+# Generate the full deck once
 full_deck = [create_card(i) for i in range(200)]
 
 def reset_game():
@@ -103,8 +106,11 @@ def reset_game():
 
 @app.route('/')
 def index():
-    with open('templates/index.html', 'r', encoding='utf-8') as f:
-        return f.read()
+    try:
+        with open('templates/index.html', 'r', encoding='utf-8') as f:
+            return f.read()
+    except Exception as e:
+        return f"Error loading index.html: {str(e)}", 500
 
 @app.route('/api/start_game', methods=['POST'])
 def start_game():
@@ -129,15 +135,12 @@ def set_name():
 
 @app.route('/api/ready/<int:player>', methods=['POST'])
 def set_ready(player):
-    global fight_active, current_turn, combat_log   # Note: using fight_log in some places, but keeping consistent
+    global fight_active, current_turn
     ready_players[player] = True
-    
-    # Only start fight ONCE when both are ready
     if ready_players[1] and ready_players[2] and not fight_active:
         fight_active = True
         current_turn = random.choice([1, 2])
-        fight_log = [f"Coin flip! {player_names[current_turn]} goes first."]  # Single message only
-    
+        fight_log.append(f"Coin flip! {player_names[current_turn]} goes first.")
     return jsonify({
         "ready1": ready_players[1],
         "ready2": ready_players[2],
@@ -181,4 +184,5 @@ def reset():
 
 if __name__ == '__main__':
     print("Nick's Card Game Server running on http://0.0.0.0:5000")
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
