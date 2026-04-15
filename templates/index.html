@@ -206,7 +206,7 @@
                     attackDeck[2] = shuffle(createDeck('attack'));
                     defenseDeck[1] = shuffle(createDeck('defense'));
                     defenseDeck[2] = shuffle(createDeck('defense'));
-                    updateFightStats();   // ← This now properly sets maxHp
+                    updateFightStats();
                     syncFightState();
                 } else {
                     alert(`Player ${player} is ready!`);
@@ -330,6 +330,11 @@
                     currentTurn = data.current_turn;
                     hp = data.hp || hp;
                     energy = data.energy || energy;
+                    // NEW: Sync maxHp from server if we add it later, but for now recalculate on each client
+                    const s1 = calculateFullStats(1);
+                    const s2 = calculateFullStats(2);
+                    maxHp[1] = s1.hp;
+                    maxHp[2] = s2.hp;
                     if (data.log && data.log.length > combatLog.length) {
                         const newEntries = data.log.slice(combatLog.length);
                         newEntries.forEach(msg => { if (!msg.includes("Turn passed")) combatLog.push(msg); });
