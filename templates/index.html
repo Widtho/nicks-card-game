@@ -186,9 +186,7 @@
             return stats;
         }
 
-        function updateFightStats() {
-            const s1 = calculateFullStats(1);
-            const s2 = calculateFullStats(2);
+        function updateFightStats(s1, s2) {
             maxHp[1] = s1.hp;
             maxHp[2] = s2.hp;
             document.getElementById('fight-stats1').innerHTML = `<strong>Player 1</strong><br>HP: ${s1.hp} | Energy: ${s1.energy}<br>AC: ${s1.ac} | Phys Atk: ${s1.phys_attack}<br>Mag Atk: ${s1.mag_attack} | Mag Def: ${s1.magdef}`;
@@ -206,7 +204,10 @@
                     attackDeck[2] = shuffle(createDeck('attack'));
                     defenseDeck[1] = shuffle(createDeck('defense'));
                     defenseDeck[2] = shuffle(createDeck('defense'));
-                    updateFightStats();
+                    // Use server-sent stats if available, otherwise calculate locally
+                    const s1 = data.stats1 || calculateFullStats(1);
+                    const s2 = data.stats2 || calculateFullStats(2);
+                    updateFightStats(s1, s2);
                     syncFightState();
                 } else {
                     alert(`Player ${player} is ready!`);
@@ -330,11 +331,6 @@
                     currentTurn = data.current_turn;
                     hp = data.hp || hp;
                     energy = data.energy || energy;
-                    // NEW: Sync maxHp from server if we add it later, but for now recalculate on each client
-                    const s1 = calculateFullStats(1);
-                    const s2 = calculateFullStats(2);
-                    maxHp[1] = s1.hp;
-                    maxHp[2] = s2.hp;
                     if (data.log && data.log.length > combatLog.length) {
                         const newEntries = data.log.slice(combatLog.length);
                         newEntries.forEach(msg => { if (!msg.includes("Turn passed")) combatLog.push(msg); });
