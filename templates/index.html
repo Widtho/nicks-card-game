@@ -98,7 +98,7 @@
         let attackDeck = {1: [], 2: []};
         let defenseDeck = {1: [], 2: []};
         let hp = {1: 300, 2: 300};
-        let maxHp = {1: 300, 2: 300};   // NEW: tracks total max HP including gear
+        let maxHp = {1: 300, 2: 300};
         let energy = {1: 100, 2: 100};
         let combatLog = [];
         let statusLog = [];
@@ -193,6 +193,7 @@
             maxHp[2] = s2.hp;
             document.getElementById('fight-stats1').innerHTML = `<strong>Player 1</strong><br>HP: ${s1.hp} | Energy: ${s1.energy}<br>AC: ${s1.ac} | Phys Atk: ${s1.phys_attack}<br>Mag Atk: ${s1.mag_attack} | Mag Def: ${s1.magdef}`;
             document.getElementById('fight-stats2').innerHTML = `<strong>Player 2</strong><br>HP: ${s2.hp} | Energy: ${s2.energy}<br>AC: ${s2.ac} | Phys Atk: ${s2.phys_attack}<br>Mag Atk: ${s2.mag_attack} | Mag Def: ${s2.magdef}`;
+            updateHPBars();
         }
 
         function readyUp(player) {
@@ -275,7 +276,6 @@
         }
 
         function updateHPBars() {
-            // Dynamic bar scaling using actual max HP
             const percent1 = Math.max(0, Math.min(100, (hp[1] / maxHp[1]) * 100));
             const percent2 = Math.max(0, Math.min(100, (hp[2] / maxHp[2]) * 100));
 
