@@ -331,7 +331,7 @@
                     currentTurn = data.current_turn;
                     hp = data.hp || hp;
                     energy = data.energy || energy;
-                    // Force recalc of maxHp on every sync so both players see correct totals
+                    // Force maxHp recalc every sync so both clients stay in sync
                     const s1 = calculateFullStats(1);
                     const s2 = calculateFullStats(2);
                     maxHp[1] = s1.hp;
