@@ -65,12 +65,12 @@
         <div style="display:flex; justify-content:space-between; margin:15px 0;">
             <div style="flex:1; text-align:center;">
                 <strong id="player1-name">Player 1</strong><br>
-                HP: <span id="hp1">300</span>
+                HP: <span id="hp1">300</span>/<span id="maxhp1">300</span>
                 <div class="hp-bar-container"><div id="hpbar1" class="hp-bar" style="width:100%"></div></div>
             </div>
             <div style="flex:1; text-align:center;">
                 <strong id="player2-name">Player 2</strong><br>
-                HP: <span id="hp2">300</span>
+                HP: <span id="hp2">300</span>/<span id="maxhp2">300</span>
                 <div class="hp-bar-container"><div id="hpbar2" class="hp-bar" style="width:100%"></div></div>
             </div>
         </div>
@@ -206,7 +206,7 @@
                     attackDeck[2] = shuffle(createDeck('attack'));
                     defenseDeck[1] = shuffle(createDeck('defense'));
                     defenseDeck[2] = shuffle(createDeck('defense'));
-                    updateFightStats();
+                    updateFightStats();   // ← This now properly sets maxHp
                     syncFightState();
                 } else {
                     alert(`Player ${player} is ready!`);
@@ -280,9 +280,11 @@
             const percent2 = Math.max(0, Math.min(100, (hp[2] / maxHp[2]) * 100));
 
             document.getElementById('hp1').textContent = hp[1];
+            document.getElementById('maxhp1').textContent = maxHp[1];
             document.getElementById('hpbar1').style.width = percent1 + '%';
 
             document.getElementById('hp2').textContent = hp[2];
+            document.getElementById('maxhp2').textContent = maxHp[2];
             document.getElementById('hpbar2').style.width = percent2 + '%';
         }
 
